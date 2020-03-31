@@ -1,87 +1,48 @@
 const express = require("express");
-const { celebrate, Segments, Joi } = require("celebrate");
 
-const OngController = require("./controllers/OngController");
-const IncidentController = require("./controllers/IncidentController");
-const ProfileController = require("./controllers/ProfileController");
-const SessionController = require("./controllers/SessionController");
+const OngController = require("./app/controllers/OngController");
+const IncidentController = require("./app/controllers/IncidentController");
+const ProfileController = require("./app/controllers/ProfileController");
+const SessionController = require("./app/controllers/SessionController");
+
+const validateOngCreate = require("./app/validators/validateOngCreate");
+const validateIncidentIndex = require("./app/validators/validateIncidentIndex");
+const validateIncidentCreate = require("./app/validators/validateIncidentCreate");
+const validateIncidentDelete = require("./app/validators/validateIncidentDelete");
+
+const validateProfileIndex = require("./app/validators/validateProfileIndex");
+
+const validateSessionCreate = require("./app/validators/validateSessionCreate");
 
 const routes = express.Router();
 
 routes.get("/ongs", OngController.index);
-routes.post(
-  "/ongs",
-  celebrate({
-    [Segments.BODY]: Joi.object().keys({
-      name: Joi.string().required(),
-      email: Joi.string()
-        .required()
-        .email(),
-      whatsapp: Joi.string()
-        .required()
-        .min(10)
-        .max(11),
-      city: Joi.string().required(),
-      uf: Joi.string()
-        .required()
-        .length(2)
-    })
-  }),
-  OngController.create
-);
+routes.post("/ongs", validateOngCreate.inputs, OngController.create);
 
 routes.get(
   "/incidents",
-  celebrate({
-    [Segments.QUERY]: Joi.object().keys({
-      page: Joi.number()
-    })
-  }),
+  validateIncidentIndex.inputs,
   IncidentController.index
 );
 
 routes.post(
   "/incidents",
-  celebrate({
-    [Segments.HEADERS]: Joi.object({
-      authorization: Joi.string().required()
-    }).unknown(),
-    [Segments.BODY]: Joi.object().keys({
-      title: Joi.string().required(),
-      description: Joi.string().required(),
-      value: Joi.number().required()
-    })
-  }),
+  validateIncidentCreate.inputs,
   IncidentController.create
 );
 
 routes.delete(
   "/incidents/:id",
-  celebrate({
-    [Segments.PARAMS]: Joi.object().keys({
-      id: Joi.number().required()
-    })
-  }),
+  validateIncidentDelete.inputs,
+  validateIncidentDelete.requests,
   IncidentController.delete
 );
 
-routes.get(
-  "/profile",
-  celebrate({
-    [Segments.HEADERS]: Joi.object({
-      authorization: Joi.string().required()
-    }).unknown()
-  }),
-  ProfileController.index
-);
+routes.get("/profile", validateProfileIndex.inputs, ProfileController.index);
 
 routes.post(
   "/sessions",
-  celebrate({
-    [Segments.BODY]: Joi.object().keys({
-      id: Joi.string().required()
-    })
-  }),
+  validateSessionCreate.inputs,
   SessionController.create
 );
 
